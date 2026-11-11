@@ -12,9 +12,9 @@
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-header{max-width:640px;margin:0 auto;padding:14px 14px 0}
-.band{height:22px;border-radius:4px;background:repeating-linear-gradient(0deg,var(--acc) 0 2px,transparent 2px 6px);border-bottom:3px solid var(--hi)}
-h1{margin:10px 0 0;font-size:26px;font-weight:800;letter-spacing:-.02em}
+header{max-width:640px;margin:0 auto;padding:22px 14px 0}
+h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.02em}
+h1::after{content:"";display:block;width:44px;height:4px;margin-top:8px;border-radius:2px;background:var(--hi)}
 h2{margin:0 0 10px;font-size:17px}
 main{max-width:640px;margin:0 auto;padding:12px 14px 40px}
 nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
@@ -48,7 +48,7 @@ button{cursor:pointer}
 </style>
 </head>
 <body>
-<header><div class="band"></div><h1>Cotizador 3D</h1></header>
+<header><h1>Cotizador 3D</h1></header>
 <main>
 <nav id="tabs">
 <button data-t="q" class="on">Cotizar</button>
