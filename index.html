@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cotizador 3D">
+<title>Cotizador 3D</title>
+<style>
+:root{--bg:#EEF1F4;--card:#fff;--ink:#14202B;--mut:#5B6B79;--line:#D5DCE3;--acc:#0A7C86;--on:#fff;--hi:#F2B705;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0F161C;--card:#18222B;--ink:#E8EEF3;--mut:#93A3B1;--line:#2A3844;--acc:#3CC4CF;--on:#0F161C;color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{max-width:640px;margin:0 auto;padding:14px 14px 0}
+.band{height:22px;border-radius:4px;background:repeating-linear-gradient(0deg,var(--acc) 0 2px,transparent 2px 6px);border-bottom:3px solid var(--hi)}
+h1{margin:10px 0 0;font-size:26px;font-weight:800;letter-spacing:-.02em}
+h2{margin:0 0 10px;font-size:17px}
+main{max-width:640px;margin:0 auto;padding:12px 14px 40px}
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+nav button{padding:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;font:inherit;font-weight:600}
+nav button.on{background:var(--acc);color:var(--on);border-color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+label{display:block;font-size:14px;color:var(--mut);margin-bottom:10px}
+input,select{display:block;width:100%;margin-top:4px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:16px inherit;font-family:inherit}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+button{cursor:pointer}
+.btn,.ghost{padding:11px 14px;border-radius:8px;font:inherit;font-weight:600;border:1px solid var(--acc)}
+.btn{background:var(--acc);color:var(--on);width:100%}
+#shr{background:transparent;color:var(--acc)}
+.ghost{background:transparent;color:var(--acc)}
+:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+.rw{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.rw.sub{font-weight:700}
+.big{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;font-size:15px}
+.big b,.tot{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--acc)}
+.hr{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.tot{font-size:22px;white-space:nowrap}
+.mut{color:var(--mut);font-size:14px}
+.ac{display:flex;gap:8px;margin-top:10px}
+.ac .ghost{flex:1;padding:8px}
+.fr{display:grid;grid-template-columns:1fr 110px 44px;gap:8px;margin-bottom:8px}
+.fr input{margin:0}
+.x{border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:8px;font-size:20px}
+#msg{min-height:22px;margin:8px 0 0;text-align:center;color:var(--acc);font-weight:600}
+.bk{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style>
+</head>
+<body>
+<header><div class="band"></div><h1>Cotizador 3D</h1></header>
+<main>
+<nav id="tabs">
+<button data-t="q" class="on">Cotizar</button>
+<button data-t="h">Historial</button>
+<button data-t="s">Ajustes</button>
+</nav>
+
+<section id="sec-q">
+<div class="card">
+<div class="g2">
+<label>Cliente<input id="cli" autocomplete="off"></label>
+<label>Pieza<input id="pie" autocomplete="off"></label>
+</div>
+<label>Filamento<select id="fil"></select></label>
+<div class="g2">
+<label>Peso por pieza (g)<input id="g" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></label>
+<label>Cantidad<input id="cant" type="number" inputmode="numeric" min="1" value="1"></label>
+</div>
+<div class="g3">
+<label>Horas<input id="hr" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></label>
+<label>Minutos<input id="mn" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></label>
+<label>Acabado (min)<input id="post" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></label>
+</div>
+<label>Extras por pieza (tornillos, empaque, pintura)<input id="extra" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></label>
+</div>
+<div class="card">
+<h2>Desglose</h2>
+<div id="res"></div>
+<div class="bk" style="margin-top:12px"><button class="btn" id="save">Guardar</button><button class="btn" id="shr">Compartir</button></div>
+<p id="msg" role="status"></p>
+</div>
+</section>
+
+<section id="sec-h" hidden>
+<div id="hl"></div>
+<div class="card">
+<h2>Copia de seguridad</h2>
+<p class="mut">Los datos se guardan solo en este dispositivo. Para pasarlos del Mac al iPhone, exporta y luego importa el archivo.</p>
+<div class="bk">
+<button class="ghost" id="exp">Exportar</button>
+<button class="ghost" id="imp">Importar</button>
+</div>
+<input type="file" id="file" accept="application/json" hidden>
+</div>
+</section>
+
+<section id="sec-s" hidden>
+<div class="card" id="cf"></div>
+<div class="card">
+<h2>Filamentos</h2>
+<div id="fl"></div>
+<p class="mut">Nombre y costo por kg</p>
+<button class="ghost" id="addf">Añadir filamento</button>
+</div>
+</section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const K='cotizador3d';
+const DEF={neg:'',dias:7,sym:'$',kwh:0.15,watts:150,maq:0.5,mo:5,fallo:5,margen:40,imp:0,fils:[{n:'PLA',c:20},{n:'PETG',c:22},{n:'ABS',c:24},{n:'TPU',c:35}]};
+let S={cfg:JSON.parse(JSON.stringify(DEF)),hist:[]};
+try{const r=JSON.parse(localStorage.getItem(K));if(r&&r.cfg)S={cfg:{...DEF,...r.cfg},hist:r.hist||[]}}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=id=>parseFloat($('#'+id).value)||0;
+const fmt=(v,s)=>(s??S.cfg.sym)+' '+v.toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2});
+const say=t=>{$('#msg').textContent=t;setTimeout(()=>$('#msg').textContent='',2500)};
+
+function getQ(){return{cli:$('#cli').value.trim(),pie:$('#pie').value.trim(),fil:+$('#fil').value||0,g:num('g'),h:num('hr'),m:num('mn'),post:num('post'),extra:num('extra'),cant:Math.max(1,Math.round(num('cant')))}}
+
+function comp(q){
+  const c=S.cfg,f=c.fils[q.fil]||{c:0},h=q.h+q.m/60;
+  const mat=q.g/1000*f.c*(1+c.fallo/100);
+  const en=h*c.watts/1000*c.kwh;
+  const maq=h*c.maq;
+  const mo=q.post/60*c.mo;
+  const costo=mat+en+maq+mo+q.extra;
+  const mg=costo*c.margen/100;
+  const imp=(costo+mg)*c.imp/100;
+  const unit=costo+mg+imp;
+  return{mat,en,maq,mo,extra:q.extra,costo,mg,imp,unit,cant:q.cant,total:unit*q.cant};
+}
+
+function calc(){
+  const q=getQ(),r=comp(q);
+  const rows=[['Material',r.mat],['Electricidad',r.en],['Desgaste de máquina',r.maq],['Mano de obra',r.mo],['Extras',r.extra],['Costo por pieza',r.costo,1],['Ganancia',r.mg],['Impuesto',r.imp]];
+  $('#res').innerHTML=rows.map(([t,v,b])=>`<div class="rw${b?' sub':''}"><span>${t}</span><span>${fmt(v)}</span></div>`).join('')
+    +`<div class="rw sub"><span>Precio por pieza</span><span>${fmt(r.unit)}</span></div>`
+    +`<div class="big"><span>Total, ${r.cant} ${r.cant===1?'pieza':'piezas'}</span><b>${fmt(r.total)}</b></div>`;
+  return r;
+}
+
+function fillSel(){
+  const s=$('#fil'),v=s.value;
+  s.innerHTML=S.cfg.fils.map((f,i)=>`<option value="${i}">${esc(f.n)}, ${fmt(f.c)}/kg</option>`).join('');
+  if(v&&+v<S.cfg.fils.length)s.value=v;
+}
+function rf(){
+  $('#fl').innerHTML=S.cfg.fils.map((f,i)=>`<div class="fr"><input data-fi="${i}" data-f="n" value="${esc(f.n)}" aria-label="Nombre"><input data-fi="${i}" data-f="c" type="number" inputmode="decimal" step="any" min="0" value="${f.c}" aria-label="Costo por kg"><button class="x" data-del="${i}" aria-label="Quitar filamento">×</button></div>`).join('');
+  fillSel();
+}
+const FD=[['neg','Nombre de tu negocio'],['dias','Validez de la cotización (días)'],['sym','Símbolo de moneda'],['kwh','Electricidad, costo por kWh'],['watts','Consumo de la impresora (W)'],['maq','Desgaste de máquina por hora'],['mo','Mano de obra por hora'],['fallo','Reserva por fallos de impresión (%)'],['margen','Ganancia (%)'],['imp','Impuesto (%)']];
+function rc(){
+  $('#cf').innerHTML='<h2>Costos</h2>'+FD.map(([k,t])=>`<label>${t}<input data-k="${k}" value="${esc(S.cfg[k])}" ${k==='sym'||k==='neg'?'':'type="number" inputmode="decimal" step="any" min="0"'}></label>`).join('');
+}
+
+$('#sec-s').addEventListener('input',e=>{
+  const d=e.target.dataset;
+  if(d.k){S.cfg[d.k]=(d.k==='sym'||d.k==='neg')?e.target.value:(parseFloat(e.target.value)||0)}
+  else if(d.fi!==undefined){S.cfg.fils[+d.fi][d.f]=d.f==='n'?e.target.value:(parseFloat(e.target.value)||0)}
+  else return;
+  save();fillSel();calc();
+});
+$('#sec-s').addEventListener('click',e=>{
+  const i=e.target.dataset.del;
+  if(i!==undefined&&S.cfg.fils.length>1){S.cfg.fils.splice(+i,1);save();rf();calc()}
+});
+$('#addf').addEventListener('click',()=>{S.cfg.fils.push({n:'Nuevo',c:20});save();rf();calc()});
+$('#sec-q').addEventListener('input',calc);
+
+$('#save').addEventListener('click',()=>{
+  const q=getQ(),r=comp(q);
+  if(!q.pie&&!q.g&&!q.h&&!q.m){say('Completa al menos la pieza o el peso.');return}
+  S.hist.unshift({id:Date.now(),fecha:new Date().toLocaleDateString('es'),sym:S.cfg.sym,fn:(S.cfg.fils[q.fil]||{n:''}).n,q,unit:r.unit,total:r.total});
+  save();say('Cotización guardada.');
+});
+
+function txt(r){
+  const c=S.cfg,q=r.q,l=[];
+  if(c.neg)l.push(c.neg);
+  l.push('Cotización de impresión 3D','');
+  if(q.cli)l.push('Cliente: '+q.cli);
+  l.push('Pieza: '+(q.pie||'Sin nombre'),'Material: '+r.fn+', '+q.g+' g','Tiempo de impresión: '+q.h+' h '+q.m+' min','Cantidad: '+q.cant,'',
+    'Precio por pieza: '+fmt(r.unit,r.sym),'Total: '+fmt(r.total,r.sym));
+  if(c.dias>0)l.push('','Válida por '+c.dias+' días.');
+  return l.join('\n');
+}
+async function share(r,btn){
+  const t=txt(r),o=btn.textContent;
+  try{
+    if(navigator.share){await navigator.share({title:'Cotización',text:t})}
+    else{await navigator.clipboard.writeText(t);btn.textContent='Copiado'}
+  }catch(err){if(err&&err.name==='AbortError')return;try{await navigator.clipboard.writeText(t);btn.textContent='Copiado'}catch(e2){btn.textContent='No se pudo'}}
+  setTimeout(()=>btn.textContent=o,1500);
+}
+function cur(){const q=getQ(),r=comp(q);return{q,unit:r.unit,total:r.total,sym:S.cfg.sym,fn:(S.cfg.fils[q.fil]||{n:''}).n}}
+$('#shr').addEventListener('click',e=>share(cur(),e.target));
+
+function rh(){
+  $('#hl').innerHTML=S.hist.length?S.hist.map(r=>`<div class="card"><div class="hr"><div><b>${esc(r.q.pie||'Sin nombre')}</b><div class="mut">${esc(r.q.cli||'Sin cliente')}, ${r.fecha}</div><div class="mut">${esc(r.fn)}, ${r.q.g} g, ${r.q.h} h ${r.q.m} min, ×${r.q.cant}</div></div><div class="tot">${fmt(r.total,r.sym)}</div></div><div class="ac"><button class="ghost" data-a="load" data-id="${r.id}">Cargar</button><button class="ghost" data-a="share" data-id="${r.id}">Compartir</button><button class="ghost" data-a="del" data-id="${r.id}">Borrar</button></div></div>`).join(''):'<div class="card"><p class="mut" style="margin:0">Aún no hay cotizaciones. Calcula una y toca Guardar cotización.</p></div>';
+}
+$('#hl').addEventListener('click',async e=>{
+  const a=e.target.dataset.a;if(!a)return;
+  const r=S.hist.find(x=>x.id==e.target.dataset.id);if(!r)return;
+  if(a==='del'){S.hist=S.hist.filter(x=>x!==r);save();rh()}
+  if(a==='load'){
+    const q=r.q;
+    $('#cli').value=q.cli;$('#pie').value=q.pie;$('#g').value=q.g||'';$('#hr').value=q.h||'';$('#mn').value=q.m||'';$('#post').value=q.post||'';$('#extra').value=q.extra||'';$('#cant').value=q.cant;
+    const i=S.cfg.fils.findIndex(f=>f.n===r.fn);if(i>=0)$('#fil').value=i;
+    calc();go('q');
+  }
+  if(a==='share')share(r,e.target);
+});
+
+$('#exp').addEventListener('click',()=>{
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));
+  a.download='cotizador3d-respaldo.json';a.click();
+});
+$('#imp').addEventListener('click',()=>$('#file').click());
+$('#file').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{try{
+    const r=JSON.parse(rd.result);
+    if(!r.cfg||!Array.isArray(r.cfg.fils)||!Array.isArray(r.hist))throw 0;
+    S={cfg:{...DEF,...r.cfg},hist:r.hist};save();rc();rf();calc();rh();
+  }catch(err){alert('El archivo no es una copia válida.')}};
+  rd.readAsText(f);e.target.value='';
+});
+
+function go(t){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  ['q','h','s'].forEach(x=>$('#sec-'+x).hidden=x!==t);
+  if(t==='h')rh();
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.t)));
+
+rc();rf();calc();
+</script>
+</body>
+</html>
